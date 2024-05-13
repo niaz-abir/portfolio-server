@@ -1,9 +1,8 @@
 const express = require("express");
 const cors = require("cors");
-const bcrypt = require("bcrypt");
+
 const { MongoClient, ObjectId } = require("mongodb");
 require("dotenv").config();
-const jwt = require("jsonwebtoken");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -26,155 +25,85 @@ async function run() {
     await client.connect();
     console.log("Connected to MongoDB");
 
-    const db = client.db("assignment");
-    const collection = db.collection("users");
-    const donation = db.collection("donation");
-    const testimonial = db.collection("testimonial");
-    const volunteer = db.collection("volunteer");
-    const leaderBoard = db.collection("leaderBoard");
-    const feedback = db.collection("feedback");
+    const db = client.db("portfolio");
+    const skills = db.collection("skill");
+    const projects = db.collection("project");
+    const blogs = db.collection("blog");
 
-    // User Registration
-    app.post("/api/v1/register", async (req, res) => {
-      const { name, email, password } = req.body;
-
-      // Check if email already exists
-      const existingUser = await collection.findOne({ email });
-      if (existingUser) {
-        return res.status(400).json({
-          success: false,
-          message: "User already exists",
-        });
-      }
-
-      // Hash the password
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Insert user into the database
-      await collection.insertOne({ name, email, password: hashedPassword });
-
-      res.status(201).json({
-        success: true,
-        message: "User registered successfully",
-      });
-    });
-
-    // User Login
-    app.post("/api/v1/login", async (req, res) => {
-      const { email, password } = req.body;
-
-      // Find user by email
-      const user = await collection.findOne({ email });
-      if (!user) {
-        return res.status(401).json({ message: "Invalid email or password" });
-      }
-
-      // Compare hashed password
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        return res.status(401).json({ message: "Invalid email or password" });
-      }
-
-      // Generate JWT token
-      const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, {
-        expiresIn: process.env.EXPIRES_IN,
-      });
-
-      res.json({
-        success: true,
-        message: "Login successful",
-        token,
-      });
-    });
-
-    // add testimonial
-    app.get("/api/v1/testimonial", async (req, res) => {
+    //  add skill
+    app.get("/api/v1/skill", async (req, res) => {
       const query = {};
-      const result = await testimonial.find(query).toArray();
+      const result = await skills.find(query).toArray();
       res.send(result);
     });
 
-    app.post("/api/v1/create-testimonial", async (req, res) => {
-      const newTestimonial = req.body;
-      const response = await testimonial.insertOne(newTestimonial);
+    app.post("/api/v1/create-skill", async (req, res) => {
+      const newSkill = req.body;
+      const response = await skills.insertOne(newSkill);
       res.send(response);
     });
-    // add volunteer
-    app.get("/api/v1/volunteer", async (req, res) => {
-      const query = {};
-      const result = await volunteer.find(query).toArray();
-      res.send(result);
-    });
-
-    app.post("/api/v1/create-volunteer", async (req, res) => {
-      const newVolunteer = req.body;
-      const response = await volunteer.insertOne(newVolunteer);
-      res.send(response);
-    });
-    // show leader board data
-    app.get("/api/v1/leader-board", async (req, res) => {
-      const query = {};
-      const result = await leaderBoard
-        .find(query)
-        .sort({ amount: -1 })
-        .toArray();
-      result.forEach((entry) => {
-        entry.amount = parseInt(entry.amount);
-      });
-      res.send(result);
-    });
-    // feedback section
-
-    app.get("/api/v1/feedback", async (req, res) => {
-      const query = {};
-      const result = await feedback.find(query).toArray();
-      res.send(result);
-    });
-
-    app.post("/api/v1/create-feedback", async (req, res) => {
-      const newFeedback = req.body;
-      const response = await feedback.insertOne(newFeedback);
-      res.send(response);
-    });
-
-    app.get("/api/v1/donation", async (req, res) => {
-      const query = {};
-      const result = await donation.find(query).toArray();
-      res.send(result);
-    });
-    app.get("/api/v1/donation/:id", async (req, res) => {
+    app.delete("/api/v1/delete-skill/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await donation.findOne(query);
-      res.send(result);
-    });
-
-    app.post("/api/v1/create-donation", async (req, res) => {
-      const newDonation = req.body;
-      const response = await donation.insertOne(newDonation);
-      res.send(response);
-    });
-
-    app.delete("/api/v1/delete-donation/:id", async (req, res) => {
-      const id = req.params.id;
-      const response = await donation.deleteOne({ _id: new ObjectId(id) });
+      const response = await skills.deleteOne({ _id: new ObjectId(id) });
       console.log(response);
       res.send(response);
     });
-
-    app.put("/api/v1/update-donation/:id", async (req, res) => {
-      const id = req.params.id;
-      const updatedDonation = req.body;
-      const query = { _id: new ObjectId(id) };
-      const last = await donation.findOne(query);
-      console.log(last);
-
-      const updateDoc = {
-        $set: updatedDonation,
-      };
-      const result = await donation.updateOne(query, updateDoc);
+    app.get("/api/v1/project", async (req, res) => {
+      const query = {};
+      const result = await projects.find(query).toArray();
       res.send(result);
     });
+
+    app.post("/api/v1/create-project", async (req, res) => {
+      const newSkill = req.body;
+      const response = await projects.insertOne(newSkill);
+      res.send(response);
+    });
+    app.delete("/api/v1/delete-project/:id", async (req, res) => {
+      const id = req.params.id;
+      const response = await projects.deleteOne({ _id: new ObjectId(id) });
+      console.log(response);
+      res.send(response);
+    });
+    app.get("/api/v1/blog", async (req, res) => {
+      const query = {};
+      const result = await blogs.find(query).toArray();
+      res.send(result);
+    });
+
+    app.post("/api/v1/create-blog", async (req, res) => {
+      const newSkill = req.body;
+      const response = await blogs.insertOne(newSkill);
+      res.send(response);
+    });
+    app.delete("/api/v1/delete-blog/:id", async (req, res) => {
+      const id = req.params.id;
+      const response = await blogs.deleteOne({ _id: new ObjectId(id) });
+
+      res.send(response);
+    });
+    // add volunteer
+
+    // app.delete("/api/v1/delete-donation/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const response = await donation.deleteOne({ _id: new ObjectId(id) });
+    //   console.log(response);
+    //   res.send(response);
+    // });
+
+    // app.put("/api/v1/update-donation/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const updatedDonation = req.body;
+    //   const query = { _id: new ObjectId(id) };
+    //   const last = await donation.findOne(query);
+    //   console.log(last);
+
+    //   const updateDoc = {
+    //     $set: updatedDonation,
+    //   };
+    //   const result = await donation.updateOne(query, updateDoc);
+    //   res.send(result);
+    // });
 
     // Start the server
     app.listen(port, () => {
