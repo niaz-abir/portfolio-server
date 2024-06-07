@@ -29,6 +29,7 @@ async function run() {
     const skills = db.collection("skill");
     const projects = db.collection("project");
     const blogs = db.collection("blog");
+    const article = db.collection("article");
 
     //  add skill
     app.get("/api/v1/skill", async (req, res) => {
@@ -69,6 +70,30 @@ async function run() {
       const query = {};
       const result = await blogs.find(query).toArray();
       res.send(result);
+    });
+
+    app.post("/api/v1/create-article", async (req, res) => {
+      const newArticle = req.body;
+      const response = await article.insertOne(newArticle);
+      res.send(response);
+    });
+    app.get("/api/v1/article", async (req, res) => {
+      const query = {};
+      const result = await article.find(query).toArray();
+      res.send(result);
+    });
+    app.get("/api/v1/article/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await article.findOne({
+        _id: new ObjectId(id),
+      });
+      res.send(result);
+    });
+    app.delete("/api/v1/article/delete-article/:id", async (req, res) => {
+      const id = req.params.id;
+      const response = await article.deleteOne({ _id: new ObjectId(id) });
+      console.log(response);
+      res.send(response);
     });
 
     app.post("/api/v1/create-blog", async (req, res) => {
